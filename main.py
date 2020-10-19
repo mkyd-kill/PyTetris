@@ -7,6 +7,8 @@
 import pygame
 import random
 
+from pygame import surface
+
 pygame.font.init()
 
 # Global variables
@@ -214,8 +216,22 @@ def clear_rows():
       pass
 
 
-def draw_next_shape():
-      pass
+def draw_next_shape(shape, surface):
+      font = pygame.font.SysFont('Helvetica', 30)
+      label = font.render('Next Shape:', 1, WHITE)
+
+      # plotting the x and y
+      sx = top_left_x + play_width + 50
+      sy = top_left_y + play_height / 2 - 100
+      format = shape.shape[shape.rotation % len(shape.shape)]
+
+      for i, line in enumerate(format):
+            row = list(line)
+            for j, column in enumerate(row):
+                  if column == '0':
+                        pygame.draw.rect(surface, shape.color, (sx + j * block_size, sy + i * block_size, block_size, block_size), 0)
+
+      surface.blit(label, (sx + 10, sy - 30))
 
 
 def draw_window(surface, grid):
@@ -233,10 +249,10 @@ def draw_window(surface, grid):
             for j in range(len(grid[i])):
                   pygame.draw.rect(surface, grid[i][j], (top_left_x + j * block_size, top_left_y + i * block_size, block_size, block_size), 0)
 
-      pygame.draw.rect(surface, RED, (top_left_x, top_left_y, play_width, play_height), 4)
+      pygame.draw.rect(surface, RED, (top_left_x, top_left_y, play_width, play_height), 5)
 
       draw_grid(surface, grid) #function call
-      pygame.display.update()
+      # pygame.display.update()
 
 
 def main(win):
@@ -311,6 +327,8 @@ def main(win):
                   change_piece = False
 
             draw_window(win, grid)
+            draw_next_shape(next_piece, win)
+            pygame.display.update()
 
             if check_lost(locked_positions):
                   run = False
