@@ -21,6 +21,7 @@ block_size = 30
 top_left_x = (s_width - play_width) // 2
 top_left_y = s_height - play_height
 
+BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREY = (128, 128, 128)
@@ -198,8 +199,11 @@ def get_shape():
       return Piece(5, 0, random.choice(shapes))
 
 
-def draw_text_middle():
-      pass
+def draw_text_middle(surface, text, size, color):
+      font = pygame.font.SysFont('Times New Roman', size, bold=True)
+      label = font.render(text, 1, color)
+
+      surface.blit(label, (top_left_x + play_width / 2 - (label.get_width() / 2), top_left_y + play_height / 2 - (label.get_height() / 2)))
 
 
 def draw_grid(surface, grid):
@@ -252,16 +256,52 @@ def draw_next_shape(shape, surface):
       surface.blit(label, (sx + 10, sy - 30))
 
 
-def draw_window(surface, grid):
+def update_score(nscore):
+      score = max_score()
+
+      with open('scores.txt', 'w') as f:
+            if int(score) > nscore:
+                  f.write(str(score))
+            else:
+                  f.write(str(nscore))
+
+def max_score():
+      with open('scores.txt', 'r') as f:
+            lines = f.readlines()
+            score = lines[0].strip() # strip() prevents any use of blackslashes in code mode
+
+
+      return score
+
+
+def draw_window(surface, grid, score=0, last_score=0):
       surface.fill((0,0,0)) # initialise black as the initial color of the grid
 
       # writing text
       pygame.font.init()
-      font = pygame.font.SysFont('Times New Roman', 40)
+      font = pygame.font.SysFont('Times New Roman', 35)
       label = font.render('Tetris Game', 1, WHITE)
 
       # draw the label
       surface.blit(label, (top_left_x + play_width / 2 - (label.get_width() / 2), 30))
+
+      # Score display side
+      font = pygame.font.SysFont('Helvetica', 25)
+      label = font.render('Score: ' + str(score), 1, WHITE)
+
+      # plotting the x and y
+      sx = top_left_x + play_width + 50
+      sy = top_left_y + play_height / 2 - 100
+
+      surface.blit(label, (sx + 15, sy + 160))
+
+      # High Score display side
+      label = font.render('High Score: ' + last_score, 1, WHITE)
+
+      sx = top_left_x - 200
+      sy = top_left_y + 200
+
+      surface.blit(label, (sx + 15, sy + 160))
 
       for i in range(len(grid)):
             for j in range(len(grid[i])):
@@ -274,6 +314,7 @@ def draw_window(surface, grid):
 
 
 def main(win):
+      last_score = max_score()
       locked_positions = {} # an empty dictionary
       grid = create_grid(locked_positions)
 
@@ -283,7 +324,7 @@ def main(win):
       next_piece = get_shape()
       clock = pygame.time.Clock()
       fall_time = 0
-      fall_speed = 0.27
+      fall_speed = 0.30
       level_time = 0
       score = 0
 
@@ -353,18 +394,35 @@ def main(win):
                   change_piece = False
                   score += clear_rows(grid, locked_positions) * 10
 
-            draw_window(win, grid)
+            draw_window(win, grid, score, last_score)
             draw_next_shape(next_piece, win)
             pygame.display.update()
 
             if check_lost(locked_positions):
-                  run = False
-      
-pygame.display.quit()
+                  win.fill(BLACK)
+                  draw_text_middle(win, "YOU LOST!!", 80, RED)
+                  pygame.display.update()
+                  pygame.time.delay(2000)
+                  run = False # or you can use pygame.display.quit()
+                  update_score(score)
 
+      pygame.time.delay(5000)
 
 def main_menu(win):
-      main(win)
+      run = True
+      while run:
+            win.fill(BLACK)
+            draw_text_middle(win, "Press any key to start", 60, WHITE)
+            pygame.display.update()
+
+            for event in pygame.event.get():
+                  if event.type == pygame.QUIT:
+                        run = False
+
+                  if event.type == pygame.KEYDOWN:
+                        main(win)
+
+      pygame.display.quit()
 
 
 win = pygame.display.set_mode((s_width, s_height))
