@@ -6,8 +6,7 @@
 
 import pygame
 import random
-
-from pygame import surface
+from network import Network
 
 pygame.font.init()
 
@@ -144,6 +143,15 @@ class Piece(object): # all board pieces
             self.rotation = 0
 
 
+def read_pos(str):
+    str = str.split(",")
+    return int(str[0]), int(str[1])
+
+
+def make_pos(tup):
+    return str(tup[0]) + "," + str(tup[1])
+
+
 def create_grid(locked_pos={}): # all board # locked_pos is initialised in an empty dictionary
       # a 10 by 20  color grid
       grid = [[(0, 0, 0)for x in range(10)] for x in range(20)]
@@ -240,7 +248,7 @@ def clear_rows(grid, locked):
 
 def draw_next_shape(shape, surface):
       font = pygame.font.SysFont('Helvetica', 30)
-      label = font.render('Next Shape:', 1, WHITE)
+      label = font.render('Next Shape: ', 1, WHITE)
 
       # plotting the x and y
       sx = top_left_x + play_width + 50
@@ -314,6 +322,8 @@ def draw_window(surface, grid, score=0, last_score=0):
 
 
 def main(win):
+      n = Network()
+      startPos = read_pos(n.getPos())
       last_score = max_score()
       locked_positions = {} # an empty dictionary
       grid = create_grid(locked_positions)
@@ -400,19 +410,20 @@ def main(win):
 
             if check_lost(locked_positions):
                   win.fill(BLACK)
-                  draw_text_middle(win, "YOU LOST!!", 80, RED)
+                  draw_text_middle(win, "YOU LOST!!!", 80, RED)
                   pygame.display.update()
                   pygame.time.delay(2000)
-                  run = False # or you can use pygame.display.quit()
+                  run = False  # or you can use pygame.display.quit()
                   update_score(score)
 
       pygame.time.delay(5000)
+      pygame.display.quit()
 
 def main_menu(win):
       run = True
       while run:
             win.fill(BLACK)
-            draw_text_middle(win, "Press any key to start", 60, WHITE)
+            draw_text_middle(win, "Press any key to play", 60, WHITE)
             pygame.display.update()
 
             for event in pygame.event.get():
@@ -426,6 +437,6 @@ def main_menu(win):
 
 
 win = pygame.display.set_mode((s_width, s_height))
-pygame.display.set_caption('Tetris')
+pygame.display.set_caption('Tetris Game')
 
 main_menu(win)
